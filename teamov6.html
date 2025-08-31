@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nosso Tempo Juntos</title>
+    <style>
+        :root {
+            --primary-color: #1a237e; /* Azul marinho escuro */
+            --secondary-color: #303f9f;
+            --accent-color: #536dfe;
+            --text-color: #ffffff;
+            --light-text: #e8eaf6;
+            --background: #0a0f3d;
+            --card-bg: rgba(26, 35, 126, 0.7);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, var(--background), var(--primary-color));
+            color: var(--text-color);
+            height: 100vh; /* Ocupa toda a altura da tela */
+            display: flex;
+            justify-content: center; /* Centraliza horizontalmente */
+            align-items: center; /* Centraliza verticalmente */
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center; /* Centraliza os cards horizontalmente */
+            align-items: center; /* Centraliza os cards verticalmente */
+            width: 100%; /* Ocupa toda a largura */
+            height: 100%; /* Ocupa toda a altura */
+            padding: 20px;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        .photo-card, .timer-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--accent-color);
+            width: 320px; /* largura fixa */
+            height: 420px; /* altura fixa */
+            box-sizing: border-box;
+        }
+
+        .photo-frame {
+            width: 100%;
+            height: 65%; /* altura da imagem no card */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--light-text);
+            text-align: center;
+        }
+
+        .timer-label {
+            font-size: 1.2rem;
+            color: var(--light-text);
+            text-align: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-color);
+        }
+
+        .modal-title {
+            margin-top: 0;
+            color: var(--light-text);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--light-text);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--light-text);
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .cancel-btn {
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+
+        .save-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 300px;
+            border: 1px solid var(--secondary-color);
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-title .heart {
+            margin-right: 8px;
+        }
+
+        .heart {
+            color: var(--accent-color);
+            animation: pulse 1.5s infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 15px;
+            }
+
+            .photo-card, .timer-card {
+                width: 100%;
+                height: auto;
+            }
+
+            .timer-display {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="photo-card">
+            <div class="photo-frame">
+                <img src="clara_namoro.jpg" alt="Nossa foto" />
+            </div>
+        </div>
+
+        <div class="timer-card">
+            <div class="timer-label">Te amo fazem:</div>
+            <div class="timer-display" id="relationship-timer">0 dias, 0 horas, 0 minutos, 0 segundos</div>
+            <div class="timer-label">Desde <span id="start-date">04/04/2025</span></div>
+        </div>
+    </div>
+
+    <div class="modal" id="event-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Adicionar Novo Evento</h2>
+            <form id="event-form">
+                <div class="form-group">
+                    <label for="event-name">Nome do Evento</label>
+                    <input type="text" id="event-name" required placeholder="Ex.: Nosso aniversário de 6 meses" />
+                </div>
+                <div class="form-group">
+                    <label for="event-date">Data do Evento</label>
+                    <input type="date" id="event-date" required />
+                </div>
+                <div class="form-group">
+                    <label for="event-description">Descrição (opcional)</label>
+                    <textarea id="event-description" rows="3" placeholder="Ex.: Vamos comemorar com um jantar especial!"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn cancel-btn" id="cancel-btn">Cancelar</button>
+                    <button type="submit" class="modal-btn save-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="notification" id="time-notification">
+        <div class="notification-title">
+            <span class="heart">❤</span>
+            <span id="notification-time"></span>
+        </div>
+        <div id="notification-message"></div>
+    </div>
+
+    <script>
+        const relationshipStartDate = new Date('2025-04-04T00:00:00');
+        let lastEqualHourNotified = null;
+
+        const loveMessages = [
+            "Te amo mais que café de manhã!",
+            "Você é o meu lugar favorito no mundo.",
+            "Meu coração bate mais forte por você.",
+            "Você me faz feliz sem nem tentar.",
+            "Obrigado por existir na minha vida.",
+            "Você é a melhor coisa que me aconteceu.",
+            "Meu dia fica melhor quando estou com você.",
+            "Você é linda por dentro e por fora.",
+            "Amo o jeito que você me faz sorrir.",
+            "Você é a minha pessoa favorita.",
+            "Meu amor por você cresce a cada dia.",
+            "Você me completa de um jeito único.",
+            "Amo cada momento ao seu lado.",
+            "Você é a resposta para todas as minhas orações.",
+            "Meu coração é seu para sempre.",
+            "Você me faz a pessoa mais sortuda do mundo.",
+            "Amo cada detalhe seu, até aqueles que você nem percebe.",
+            "Você é meu pensamento favorito.",
+            "Não existe 'eu' sem você.",
+            "Você é o amor da minha vida.",
+            "Meu coração sorri quando te vejo.",
+            "Você é meu porto seguro.",
+            "Amo o jeito que você me entende.",
+            "Você é a minha paz.",
+            "Meu mundo é mais colorido com você.",
+            "Você é a minha inspiração.",
+            "Amo o seu jeito único de ser.",
+            "Você me faz querer ser melhor.",
+            "Meu amor por você não cabe no peito.",
+            "Você é o meu sonho realizado.",
+            "Amo cada detalhe do seu rosto.",
+            "Você é a luz dos meus dias.",
+            "Meu coração escolheu você.",
+            "Você é a minha felicidade.",
+            "Obrigado por ser você, Clara. Meu amor por você é infinito.",
+            "Amo o seu cheiro, seu sorriso, seu tudo.",
+            "Meu amor por você é infinito.",
+            "Você é a razão do meu sorriso.",
+            "Amo como você me faz sentir especial.",
+            "Você é o meu presente de Deus.",
+            "Meu coração reconheceu o seu desde o início.",
+            "Você é a minha alma gêmea.",
+            "Amo a forma como você me ama.",
+            "Você é a minha estrela cadente.",
+            "Meu amor por você não tem fim.",
+            "Não importa o dia, você sempre será a melhor parte dele.",
+            "Você é o meu paraíso.",
+            "Amo como você me faz rir.",
+            "Você é a minha melhor metade.",
+            "Meu coração pulou quando te conheci.",
+            "Você é o meu tudo.",
+            "Amo como você me conhece tão bem.",
+            "Você é a minha energia positiva.",
+            "Meu amor por você é incondicional.",
+            "Você é a minha vitamina diária.",
+            "Amo como você me apoia em tudo.",
+            "Você é o meu abraço favorito.",
+            "Meu coração é seu desde o primeiro dia.",
+            "Você é a minha calmaria na tempestade.",
+            "Amo como você me surpreende.",
+            "Você é a minha poesia favorita.",
+            "Meu amor por você é eterno.",
+            "Amo como você me faz sentir em casa.",
+            "Você é a minha bússola.",
+            "Meu coração encontrou o seu destino em você.",
+            "Você é a minha luz no fim do túnel.",
+            "Amo como você me desafia a crescer.",
+            "Você é o meu refúgio.",
+            "Meu amor por você é puro e verdadeiro.",
+            "Você é a minha motivação.",
+            "Amo como você me faz sentir amado.",
+            "Você é o meu maior tesouro.",
+            "Meu coração vibra quando te vê.",
+            "Você é a minha paz interior.",
+            "Amo como você me completa.",
+            "Você é o meu maior presente.",
+            "Meu amor por você é maior que o universo.",
+            "Você é a minha alegria diária.",
+            "Amo como você me faz sentir seguro(a).",
+            "Você é o meu porto seguro.",
+            "Meu coração encontrou o seu lar em você.",
+            "Você é a minha razão de viver.",
+            "Amo como você me faz sentir especial.",
+            "Você é a minha melhor amiga.",
+            "Meu amor por você é imensurável.",
+            "Você é a minha energia positiva.",
+            "Amo como você me faz sentir completo.",
+            "Você é o meu sorriso espontâneo.",
+            "Meu coração é seu em todos os universos.",
+            "Você é a minha felicidade plena.",
+            "Você é a minha inspiração diária.",
+            "Você é o meu maior presente.",
+            "Meu coração encontrou o seu destino em você.",
+            "Você é a minha luz guia.",
+            "Amo como você me faz sentir único.",
+            "Você é o meu maior tesouro.",
+            "Você é a minha paz e alegria.",
+            "Amo como você me faz sentir vivo.",
+            "Você é o meu maior sonho realizado."
+        ];
+
+        const relationshipTimerEl = document.getElementById('relationship-timer');
+        const startDateEl = document.getElementById('start-date');
+        const addEventBtn = document.getElementById('add-event-btn');
+        const eventModal = document.getElementById('event-modal');
+        const eventForm = document.getElementById('event-form');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const eventNameInput = document.getElementById('event-name');
+        const eventDateInput = document.getElementById('event-date');
+        const eventDescInput = document.getElementById('event-description');
+        const timeNotification = document.getElementById('time-notification');
+        const notificationTimeEl = document.getElementById('notification-time');
+        const notificationMessageEl = document.getElementById('notification-message');
+
+        function formatDate(date) {
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function updateRelationshipTimer() {
+            const now = new Date();
+            const diff = now - relationshipStartDate;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            relationshipTimerEl.textContent = `${days} dias, ${hours} horas, ${minutes} minutos, ${seconds} segundos`;
+        }
+
+        function showEqualHourNotification(currentHour, currentMinutes) {
+            if (lastEqualHourNotified === `${currentHour}:${currentMinutes}`) {
+                return;
+            }
+            lastEqualHourNotified = `${currentHour}:${currentMinutes}`;
+            const formattedHour = currentHour.toString().padStart(2, '0');
+            const formattedMinutes = currentMinutes.toString().padStart(2, '0');
+            const randomMessage = loveMessages[Math.floor(Math.random() * loveMessages.length)];
+            notificationTimeEl.textContent = `${formattedHour}:${formattedMinutes}`;
+            notificationMessageEl.textContent = randomMessage;
+            timeNotification.classList.add('show');
+            // setTimeout(() => {
+            //     timeNotification.classList.remove('show');
+            // }, 5000);
+        }
+
+        function checkEqualHours() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinutes = now.getMinutes();
+            if (currentHour === currentMinutes) {
+                showEqualHourNotification(currentHour, currentMinutes);
+            }
+        }
+
+        if (startDateEl) {
+            startDateEl.textContent = formatDate(relationshipStartDate);
+        }
+        updateRelationshipTimer();
+
+        setInterval(() => {
+            updateRelationshipTimer();
+            checkEqualHours();
+        }, 1000);
+
+        // Event modal controls
+        if (addEventBtn) {
+            addEventBtn.addEventListener('click', () => {
+                eventModal.style.display = 'flex';
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                eventModal.style.display = 'none';
+                eventForm.reset();
+            });
+        }
+
+        if (eventForm) {
+            eventForm.addEventListener('submit', e => {
+                e.preventDefault();
+                // Here you can add event saving logic if needed
+                eventModal.style.display = 'none';
+                eventForm.reset();
+            });
+        }
+
+        if (eventModal) {
+            eventModal.addEventListener('click', e => {
+                if (e.target === eventModal) {
+                    eventModal.style.display = 'none';
+                    eventForm.reset();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
